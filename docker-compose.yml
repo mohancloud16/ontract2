@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:14
+    container_name: onboarding_db
+    restart: always
+    environment:
+      POSTGRES_DB: onboarding
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+    command: >
+      postgres -c shared_buffers=128MB -c work_mem=4MB -c maintenance_work_mem=32MB
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+    networks:
+      - onboarding_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: onboarding_backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:admin123@db:5432/onboarding
+      ALLOWED_ORIGINS: "*"
+      FLASK_DEBUG: "False"
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    networks:
+      - onboarding_network
+
+  admin:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.admin
+    container_name: onboarding_admin
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:admin123@db:5432/onboarding
+      ALLOWED_ORIGINS: "*"
+      FLASK_DEBUG: "False"
+    depends_on:
+      - db
+    ports:
+      - "5001:5001"
+    networks:
+      - onboarding_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: onboarding_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    networks:
+      - onboarding_network
+
+volumes:
+  db_data:
+
+networks:
+  onboarding_network:
+    driver: bridge
