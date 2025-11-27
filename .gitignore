@@ -1,0 +1,16 @@
+# ENV FILES
+.env
+.env.*
+backend/.env
+frontend/.env
+frontend/.env.production
+
+# NODE / PYTHON
+node_modules/
+__pycache__/
+venv/
+
+# LOGS / TEMP
+*.log
+.DS_Store
+
