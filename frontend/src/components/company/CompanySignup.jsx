@@ -81,7 +81,7 @@ function CompanySignup() {
     const payload = {
       company_name: companyName,
       business_registration_number: registrationNumber, // 🔥 KEY MATCHES BACKEND
-      email_id: email,
+      email: email,
       phone_number: phoneNumber,
       password: password,
       captcha_token: captchaToken,

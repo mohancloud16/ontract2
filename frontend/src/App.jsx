@@ -62,9 +62,21 @@ useEffect(() => {
 
   // Stop dropdown clicks from closing navbar
   const dropdownMenus = document.querySelectorAll(".dropdown-menu");
-  dropdownMenus.forEach((menu) => {
-    menu.addEventListener("click", (e) => e.stopPropagation());
+	dropdownMenus.forEach((menu) => {
+  menu.addEventListener("click", (e) => {
+    const isLink = e.target.tagName === "A" && e.target.classList.contains("dropdown-item");
+
+    if (isLink) {
+      // Allow navigation, close menu smoothly
+      const parentMenu = menu.closest(".dropdown");
+      const toggle = parentMenu.querySelector(".dropdown-toggle");
+      toggle?.click();
+      return; // let Link routing happen
+    }
+
+    e.stopPropagation();
   });
+});
 
   // Toggle dropdown manually on mobile
   const dropdownToggles = document.querySelectorAll(".dropdown-toggle");

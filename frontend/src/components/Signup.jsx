@@ -22,7 +22,7 @@ function Signup() {
 
   const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
-  // ✅ Form validation
+  // ---------------------- VALIDATION ----------------------
   const validateForm = () => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,19 +44,11 @@ function Signup() {
     if (!password.trim()) {
       errors.password = "Password is required.";
     } else {
-      if (password.length < 8)
-        errors.password = "Password must be at least 8 characters.";
-      else if (!/[A-Z]/.test(password))
-        errors.password =
-          "Password must contain at least one uppercase letter.";
-      else if (!/[a-z]/.test(password))
-        errors.password =
-          "Password must contain at least one lowercase letter.";
-      else if (!/[0-9]/.test(password))
-        errors.password = "Password must contain at least one digit.";
-      else if (!/[^A-Za-z0-9]/.test(password))
-        errors.password =
-          "Password must contain at least one special character.";
+      if (password.length < 8) errors.password = "Password must be at least 8 characters.";
+      else if (!/[A-Z]/.test(password)) errors.password = "Must contain uppercase letter.";
+      else if (!/[a-z]/.test(password)) errors.password = "Must contain lowercase letter.";
+      else if (!/[0-9]/.test(password)) errors.password = "Must contain at least one number.";
+      else if (!/[^A-Za-z0-9]/.test(password)) errors.password = "Must contain special character.";
     }
 
     if (!confirmPassword.trim()) {
@@ -72,9 +64,8 @@ function Signup() {
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
 
-  // ✅ Submit
+  // ---------------------- SUBMIT ----------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -84,13 +75,13 @@ function Signup() {
     setLoading(true);
 
     try {
-      console.log("Sending to:", `${BASE_URLS.user}/api/signup`);
+      // ✅ Correct backend endpoint for provider signup in production
+      const endpoint = `${BASE_URLS.user}/api/signup`;
+      console.log("Signup endpoint:", endpoint);
 
-      const response = await fetch(`${BASE_URLS.user}/api/signup`, {
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone_number: phoneNumber,
           email,
@@ -99,24 +90,18 @@ function Signup() {
         }),
       });
 
-      const text = await response.text(); // get raw text first
+      const rawText = await response.text();
+      let data;
 
-      let data = {};
       try {
-        data = JSON.parse(text); // try convert to JSON
+        data = JSON.parse(rawText);
       } catch {
-        data = { error: text };
+        data = { error: rawText };
       }
-
-      console.log("Response status:", response.status);
-      console.log("Response data:", data);
 
       if (response.ok) {
         navigate("/login", {
-          state: {
-            message:
-              "The activation link has been sent to your email. Please activate before login.",
-          },
+          state: { message: "Activation link sent to email. Please verify before login." },
         });
 
         setPhoneNumber("");
@@ -126,28 +111,17 @@ function Signup() {
         recaptchaRef.current?.reset();
         setCaptchaToken(null);
       } else {
-        setError(data.error || "Signup failed. Backend returned error.");
+        setError(data.error || "Signup failed.");
         recaptchaRef.current?.reset();
         setCaptchaToken(null);
       }
     } catch (err) {
-      console.error("Network Error:", err);
-      setError("Unable to connect to server (port 5000 not responding).");
-      recaptchaRef.current?.reset();
-      setCaptchaToken(null);
+      console.error("Signup error:", err);
+      setError("Unable to connect to server. Check backend.");
     } finally {
       setLoading(false);
     }
   };
-
-  const onCaptchaChange = (token) => {
-    setCaptchaToken(token);
-    if (token) {
-      setFieldErrors((prev) => ({ ...prev, captcha: "" }));
-    }
-  };
-
-  const preventPaste = (e) => e.preventDefault();
 
   return (
     <div className="signup-container">
@@ -158,7 +132,6 @@ function Signup() {
         {error && <p className="signup-error">{error}</p>}
 
         <form onSubmit={handleSubmit} className="signup-form">
-
           {/* Phone */}
           <div className="form-group">
             <label>Phone Number *</label>
@@ -166,12 +139,10 @@ function Signup() {
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter your phone number"
+              placeholder="Enter phone number"
               disabled={loading}
             />
-            {fieldErrors.phoneNumber && (
-              <span className="error-text">{fieldErrors.phoneNumber}</span>
-            )}
+            {fieldErrors.phoneNumber && <span className="error-text">{fieldErrors.phoneNumber}</span>}
           </div>
 
           {/* Email */}
@@ -181,12 +152,10 @@ function Signup() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="Enter email"
               disabled={loading}
             />
-            {fieldErrors.email && (
-              <span className="error-text">{fieldErrors.email}</span>
-            )}
+            {fieldErrors.email && <span className="error-text">{fieldErrors.email}</span>}
           </div>
 
           {/* Password */}
@@ -197,20 +166,14 @@ function Signup() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onPaste={preventPaste}
-                placeholder="Create a password"
                 disabled={loading}
+                placeholder="Create password"
               />
-              <span
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
+              <span className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </span>
             </div>
-            {fieldErrors.password && (
-              <span className="error-text">{fieldErrors.password}</span>
-            )}
+            {fieldErrors.password && <span className="error-text">{fieldErrors.password}</span>}
           </div>
 
           {/* Confirm Password */}
@@ -221,48 +184,29 @@ function Signup() {
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                onPaste={preventPaste}
-                placeholder="Confirm your password"
                 disabled={loading}
+                placeholder="Confirm password"
               />
               <span
                 className="password-toggle"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </span>
             </div>
             {fieldErrors.confirmPassword && (
-              <span className="error-text">
-                {fieldErrors.confirmPassword}
-              </span>
+              <span className="error-text">{fieldErrors.confirmPassword}</span>
             )}
           </div>
 
           {/* Captcha */}
           <div className="form-group captcha-group">
             <label>Verification</label>
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey={RECAPTCHA_SITE_KEY}
-              onChange={onCaptchaChange}
-            />
-            {fieldErrors.captcha && (
-              <span className="error-text">{fieldErrors.captcha}</span>
-            )}
+            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} onChange={setCaptchaToken} />
+            {fieldErrors.captcha && <span className="error-text">{fieldErrors.captcha}</span>}
           </div>
 
-          <button
-            type="submit"
-            className="signup-button"
-            disabled={loading}
-          >
+          <button type="submit" className="signup-button" disabled={loading}>
             {loading ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
@@ -277,3 +221,4 @@ function Signup() {
 }
 
 export default Signup;
+

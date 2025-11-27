@@ -1,38 +1,64 @@
-import smtplib, os
+# backend/app/utils/email_utils.py
+
+import os
+import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+
 from app.config import Config
 
 EMAIL = Config.EMAIL_CONFIG
+FRONTEND_URL = Config.FRONTEND_URL.rstrip("/")  # e.g. http://44.211.36.186
+FROM_EMAIL = Config.FROM_EMAIL or EMAIL.get("sender_email")
 
-def send_email(to_email, subject, body, attachment=None):
+
+def send_email(to_email: str, subject: str, body: str, attachment: str | None = None):
+    """
+    Generic email sender using SMTP settings from Config.EMAIL_CONFIG
+    and FROM_EMAIL / SMTP_USER as sender.
+    """
     msg = MIMEMultipart()
-    msg['Subject'] = subject
-    msg['From'] = EMAIL['sender_email']
-    msg['To'] = to_email
+    msg["Subject"] = subject
+    msg["From"] = FROM_EMAIL
+    msg["To"] = to_email
     msg.attach(MIMEText(body))
 
+    # Optional attachment
     if attachment:
-        with open(attachment, 'rb') as f:
+        with open(attachment, "rb") as f:
             part = MIMEApplication(f.read(), Name=os.path.basename(attachment))
-        part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment)}"'
+        part["Content-Disposition"] = f'attachment; filename="{os.path.basename(attachment)}"'
         msg.attach(part)
 
-    with smtplib.SMTP(EMAIL['smtp_server'], EMAIL['smtp_port']) as server:
+    with smtplib.SMTP(EMAIL["smtp_server"], EMAIL["smtp_port"]) as server:
+        # Always use STARTTLS (works for Gmail, etc.)
         server.starttls()
-        server.login(EMAIL['sender_email'], EMAIL['sender_password'])
+        server.login(EMAIL["sender_email"], EMAIL["sender_password"])
         server.send_message(msg)
 
-def send_activation_email(email, token):
-    link = f"http://localhost:5173/activate?token={token}"
+    return True
+
+
+# ===============================================================
+# ✅ Provider Email Templates
+# ===============================================================
+
+def send_activation_email(email: str, token: str):
+    """
+    Provider activation email.
+    Uses FRONTEND_URL from Config instead of localhost.
+    Example final link:
+      http://44.211.36.186/activate?token=...
+    """
+    link = f"{FRONTEND_URL}/activate?token={token}"
     subject = "Activate Your Provider Account"
     body = f"""
     Dear Provider,
 
     Please activate your Ontract account by clicking this link:
     {link}
-    
+
     Thank you for choosing Ontract.
 
     Regards,
@@ -41,7 +67,7 @@ def send_activation_email(email, token):
     return send_email(email, subject, body.strip())
 
 
-def send_otp_email(email, otp):
+def send_otp_email(email: str, otp: str):
     subject = "Your Ontract OTP Code"
     body = f"""
     Dear User,
@@ -56,7 +82,8 @@ def send_otp_email(email, otp):
     """
     return send_email(email, subject, body.strip())
 
-def send_reset_otp_email(email, otp):
+
+def send_reset_otp_email(email: str, otp: str):
     subject = "Your Ontract Password Reset OTP"
     body = f"""
     Dear User,
@@ -73,12 +100,17 @@ def send_reset_otp_email(email, otp):
 
 
 # ===============================================================
-# ✅ Contractor Email Templates (for contractor.py)
+# ✅ Contractor Email Templates
 # ===============================================================
 
-def send_contractor_activation_email(email, token):
-    """Send activation link for Contractor"""
-    link = f"http://localhost:5173/contractor/activate?token={token}"
+def send_contractor_activation_email(email: str, token: str):
+    """
+    Contractor activation email.
+    Uses FRONTEND_URL from Config instead of localhost.
+    Example final link:
+      http://44.211.36.186/contractor/activate?token=...
+    """
+    link = f"{FRONTEND_URL}/contractor/activate?token={token}"
     subject = "Activate Your Company Account"
     body = f"""
     Dear Company User,
@@ -94,8 +126,7 @@ def send_contractor_activation_email(email, token):
     return send_email(email, subject, body.strip())
 
 
-def send_contractor_otp_email(email, otp):
-    """Send login OTP for Contractor"""
+def send_contractor_otp_email(email: str, otp: str):
     subject = "Your Ontract Contractor OTP Code"
     body = f"""
     Dear Contractor,
@@ -111,8 +142,7 @@ def send_contractor_otp_email(email, otp):
     return send_email(email, subject, body.strip())
 
 
-def send_contractor_profile_submitted_email(email, company_name):
-    """Notify contractor their profile was submitted"""
+def send_contractor_profile_submitted_email(email: str, company_name: str):
     subject = "Your Company Profile Has Been Submitted"
     body = f"""
     Dear {company_name},
@@ -126,8 +156,7 @@ def send_contractor_profile_submitted_email(email, company_name):
     return send_email(email, subject, body.strip())
 
 
-def send_admin_new_contractor_notification(admin_email, company_name, email):
-    """Notify Admin about new contractor registration/profile update"""
+def send_admin_new_contractor_notification(admin_email: str, company_name: str, email: str):
     subject = "New Contractor Profile Submitted"
     body = f"""
     A new contractor profile has been submitted for review.
@@ -140,7 +169,7 @@ def send_admin_new_contractor_notification(admin_email, company_name, email):
     return send_email(admin_email, subject, body.strip())
 
 
-def send_admin_otp_email(email, otp):
+def send_admin_otp_email(email: str, otp: str):
     subject = "Your Ontract Admin OTP Code"
     body = f"""
     Dear Admin,
@@ -152,4 +181,5 @@ def send_admin_otp_email(email, otp):
     Thanks,
     Ontract
     """.strip()
-    send_email(email, subject, body)
+    return send_email(email, subject, body)
+
