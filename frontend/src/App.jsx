@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import "./App.css";
@@ -26,11 +25,11 @@ import CompanyOTPVerification from "./components/company/CompanyOTPVerification"
 import CompanyDashboardHome from "./components/company/CompanyDashboardHome";
 import CompanyProfile from "./components/company/CompanyProfile";
 import CompanyServices from "./components/company/CompanyServices";
-import AdminApp from "./components/AdminApp";
-import Notifications from "./components/Notifications";
-import CompanyApp from "./components/company/CompanyApp";
 import CompanyNotifications from "./components/company/CompanyNotifications";
 
+import Notifications from "./components/Notifications";
+import AdminApp from "./components/AdminApp";
+import CompanyApp from "./components/company/CompanyApp";
 
 function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
   const location = useLocation();
@@ -41,7 +40,6 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/contractor/dashboard");
 
-  // Dropdown state (React controlled — FIXES Bootstrap issue)
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
 
@@ -52,13 +50,16 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
   useEffect(() => {
     const handleClick = (e) => {
       if (
-        loginRef.current && !loginRef.current.contains(e.target) &&
-        signupRef.current && !signupRef.current.contains(e.target)
+        loginRef.current &&
+        !loginRef.current.contains(e.target) &&
+        signupRef.current &&
+        !signupRef.current.contains(e.target)
       ) {
         setLoginOpen(false);
         setSignupOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
@@ -70,14 +71,18 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
       {!hideLayout && (
         <nav className="navbar navbar-expand-lg sticky-top bg-light shadow-sm">
           <div className="container">
+            <Link className="navbar-brand fw-bold" to="/">
+              Ontract Services
+            </Link>
 
-            <Link className="navbar-brand fw-bold" to="/">Ontract Services</Link>
-
-            <button className="navbar-toggler" type="button"
+            <button
+              className="navbar-toggler"
+              type="button"
               onClick={() => {
                 setLoginOpen(false);
                 setSignupOpen(false);
-              }}>
+              }}
+            >
               <span className="navbar-toggler-icon"></span>
             </button>
 
@@ -90,39 +95,76 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
 
                 {/* LOGIN DROPDOWN */}
                 <li className="nav-item dropdown" ref={loginRef}>
-                  <button className="nav-link btn dropdown-toggle"
+                  <button
+                    className="nav-link btn dropdown-toggle"
                     onClick={() => {
                       setSignupOpen(false);
                       setLoginOpen(!loginOpen);
-                    }}>
+                    }}
+                  >
                     Login
                   </button>
 
                   {loginOpen && (
                     <ul className="dropdown-menu show dropdown-menu-end mt-2">
-                      <li><Link className="dropdown-item" to="/login">Individual</Link></li>
-                      <li><Link className="dropdown-item" to="/contractor/login">Contractor</Link></li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/login"
+                          onClick={() => setLoginOpen(false)}
+                        >
+                          Individual
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/contractor/login"
+                          onClick={() => setLoginOpen(false)}
+                        >
+                          Contractor
+                        </Link>
+                      </li>
                     </ul>
                   )}
                 </li>
 
                 {/* SIGNUP DROPDOWN */}
                 <li className="nav-item dropdown ms-2" ref={signupRef}>
-                  <button className="nav-link btn dropdown-toggle"
+                  <button
+                    className="nav-link btn dropdown-toggle"
                     onClick={() => {
                       setLoginOpen(false);
                       setSignupOpen(!signupOpen);
-                    }}>
+                    }}
+                  >
                     Sign Up
                   </button>
 
                   {signupOpen && (
                     <ul className="dropdown-menu show dropdown-menu-end mt-2">
-                      <li><Link className="dropdown-item" to="/signup">Individual</Link></li>
-                      <li><Link className="dropdown-item" to="/contractor/signup">Contractor</Link></li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/signup"
+                          onClick={() => setSignupOpen(false)}
+                        >
+                          Individual
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/contractor/signup"
+                          onClick={() => setSignupOpen(false)}
+                        >
+                          Contractor
+                        </Link>
+                      </li>
                     </ul>
                   )}
                 </li>
+
               </ul>
             </div>
           </div>
@@ -145,24 +187,54 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
           <Route path="/provider_home" element={<ProviderHome user={user} />}>
             <Route path="profile" element={<ProviderProfile user={user} />} />
             <Route path="services" element={<ProviderServices user={user} />} />
-            <Route path="notifications" element={<Notifications user={user} />} />
+            <Route
+              path="notifications"
+              element={<Notifications user={user} />}
+            />
           </Route>
 
           {/* Contractor */}
-          <Route path="/contractor/login" element={<CompanyLogin setContractor={setContractor} />} />
+          <Route
+            path="/contractor/login"
+            element={<CompanyLogin setContractor={setContractor} />}
+          />
           <Route path="/contractor/signup" element={<CompanySignup />} />
-          <Route path="/contractor/activate" element={<CompanyActivateAccount setContractor={setContractor} />} />
-          <Route path="/contractor/verify_otp" element={<CompanyOTPVerification setContractor={setContractor} />} />
-          <Route path="/contractor/dashboard" element={<CompanyApp contractor={contractor} setContractor={setContractor} />} >
+          <Route
+            path="/contractor/activate"
+            element={<CompanyActivateAccount setContractor={setContractor} />}
+          />
+          <Route
+            path="/contractor/verify_otp"
+            element={<CompanyOTPVerification setContractor={setContractor} />}
+          />
+
+          <Route
+            path="/contractor/dashboard"
+            element={
+              <CompanyApp
+                contractor={contractor}
+                setContractor={setContractor}
+              />
+            }
+          >
             <Route path="home" element={<CompanyDashboardHome />} />
             <Route path="profile" element={<CompanyProfile />} />
             <Route path="services" element={<CompanyServices />} />
-            <Route path="notifications" element={<CompanyNotifications />} />
+            <Route
+              path="notifications"
+              element={<CompanyNotifications />}
+            />
           </Route>
 
           {/* Admin */}
-          <Route path="/admin/*" element={<AdminApp admin={admin} setAdmin={setAdmin} />} />
-          <Route path="/admin/login" element={<AdminLogin setAdmin={setAdmin} />} />
+          <Route
+            path="/admin/*"
+            element={<AdminApp admin={admin} setAdmin={setAdmin} />}
+          />
+          <Route
+            path="/admin/login"
+            element={<AdminLogin setAdmin={setAdmin} />}
+          />
 
         </Routes>
       </main>
@@ -170,13 +242,12 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
   );
 }
 
-
 export default function App() {
   const [user, setUser] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [contractor, setContractor] = useState(null);
 
-  // Restore session
+  // Restore session from localStorage
   useEffect(() => {
     const load = (key) => {
       const stored = localStorage.getItem(key);
