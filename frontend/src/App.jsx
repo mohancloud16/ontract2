@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import "./App.css";
@@ -40,6 +41,8 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
     location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/contractor/dashboard");
 
+  // Navbar + dropdown state
+  const [navOpen, setNavOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
 
@@ -59,26 +62,40 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
         setSignupOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Helper to close everything (used when clicking nav links)
+  const closeAllMenus = () => {
+    setNavOpen(false);
+    setLoginOpen(false);
+    setSignupOpen(false);
+  };
+
   return (
     <div className="min-h-screen d-flex flex-column">
-
       {/* NAVBAR */}
       {!hideLayout && (
         <nav className="navbar navbar-expand-lg sticky-top bg-light shadow-sm">
           <div className="container">
-            <Link className="navbar-brand fw-bold" to="/">
+            <Link
+              className="navbar-brand fw-bold"
+              to="/"
+              onClick={closeAllMenus}
+            >
               Ontract Services
             </Link>
 
+            {/* Mobile hamburger toggle */}
             <button
               className="navbar-toggler"
               type="button"
+              aria-label="Toggle navigation"
+              aria-expanded={navOpen ? "true" : "false"}
               onClick={() => {
+                setNavOpen((prev) => !prev);
+                // When opening/closing main nav, collapse dropdowns
                 setLoginOpen(false);
                 setSignupOpen(false);
               }}
@@ -86,20 +103,32 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
               <span className="navbar-toggler-icon"></span>
             </button>
 
-            <div className="collapse navbar-collapse" id="navbarNav">
+            {/* Collapsible nav content */}
+            <div
+              className={`collapse navbar-collapse ${
+                navOpen ? "show" : ""
+              }`}
+              id="navbarNav"
+            >
               <ul className="navbar-nav ms-auto align-items-center">
-
                 <li className="nav-item">
-                  <Link className="nav-link" to="/">Home</Link>
+                  <Link
+                    className="nav-link"
+                    to="/"
+                    onClick={closeAllMenus}
+                  >
+                    Home
+                  </Link>
                 </li>
 
                 {/* LOGIN DROPDOWN */}
                 <li className="nav-item dropdown" ref={loginRef}>
                   <button
                     className="nav-link btn dropdown-toggle"
+                    type="button"
                     onClick={() => {
                       setSignupOpen(false);
-                      setLoginOpen(!loginOpen);
+                      setLoginOpen((prev) => !prev);
                     }}
                   >
                     Login
@@ -111,7 +140,7 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
                         <Link
                           className="dropdown-item"
                           to="/login"
-                          onClick={() => setLoginOpen(false)}
+                          onClick={closeAllMenus}
                         >
                           Individual
                         </Link>
@@ -120,7 +149,7 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
                         <Link
                           className="dropdown-item"
                           to="/contractor/login"
-                          onClick={() => setLoginOpen(false)}
+                          onClick={closeAllMenus}
                         >
                           Contractor
                         </Link>
@@ -133,9 +162,10 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
                 <li className="nav-item dropdown ms-2" ref={signupRef}>
                   <button
                     className="nav-link btn dropdown-toggle"
+                    type="button"
                     onClick={() => {
                       setLoginOpen(false);
-                      setSignupOpen(!signupOpen);
+                      setSignupOpen((prev) => !prev);
                     }}
                   >
                     Sign Up
@@ -147,7 +177,7 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
                         <Link
                           className="dropdown-item"
                           to="/signup"
-                          onClick={() => setSignupOpen(false)}
+                          onClick={closeAllMenus}
                         >
                           Individual
                         </Link>
@@ -156,7 +186,7 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
                         <Link
                           className="dropdown-item"
                           to="/contractor/signup"
-                          onClick={() => setSignupOpen(false)}
+                          onClick={closeAllMenus}
                         >
                           Contractor
                         </Link>
@@ -164,7 +194,6 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
                     </ul>
                   )}
                 </li>
-
               </ul>
             </div>
           </div>
@@ -174,13 +203,18 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
       {/* ROUTES */}
       <main className="flex-fill">
         <Routes>
-
           {/* User */}
           <Route path="/" element={<Home user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/verify-otp" element={<OTPVerification setUser={setUser} />} />
-          <Route path="/activate" element={<ActivateAccount setUser={setUser} />} />
+          <Route
+            path="/verify-otp"
+            element={<OTPVerification setUser={setUser} />}
+          />
+          <Route
+            path="/activate"
+            element={<ActivateAccount setUser={setUser} />}
+          />
           <Route path="/forgot_password" element={<ForgotPassword />} />
 
           {/* Provider */}
@@ -193,7 +227,7 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
             />
           </Route>
 
-          {/* Contractor */}
+          {/* Contractor auth */}
           <Route
             path="/contractor/login"
             element={<CompanyLogin setContractor={setContractor} />}
@@ -208,6 +242,7 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
             element={<CompanyOTPVerification setContractor={setContractor} />}
           />
 
+          {/* Contractor dashboard – pass contractor to children */}
           <Route
             path="/contractor/dashboard"
             element={
@@ -217,12 +252,28 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
               />
             }
           >
-            <Route path="home" element={<CompanyDashboardHome />} />
-            <Route path="profile" element={<CompanyProfile />} />
-            <Route path="services" element={<CompanyServices />} />
+            <Route
+              path="home"
+              element={
+                <CompanyDashboardHome
+                  contractor={contractor}
+                  setContractor={setContractor}
+                />
+              }
+            />
+            <Route
+              path="profile"
+              element={<CompanyProfile contractor={contractor} />}
+            />
+            <Route
+              path="services"
+              element={<CompanyServices contractor={contractor} />}
+            />
             <Route
               path="notifications"
-              element={<CompanyNotifications />}
+              element={
+                <CompanyNotifications contractor={contractor} />
+              }
             />
           </Route>
 
@@ -236,6 +287,8 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
             element={<AdminLogin setAdmin={setAdmin} />}
           />
 
+          {/* Optional: 404 fallback */}
+          {/* <Route path="*" element={<Home user={user} />} /> */}
         </Routes>
       </main>
     </div>
@@ -243,20 +296,36 @@ function Layout({ user, setUser, admin, setAdmin, contractor, setContractor }) {
 }
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [admin, setAdmin] = useState(null);
-  const [contractor, setContractor] = useState(null);
+  const [user, setUser] = React.useState(null);
+  const [admin, setAdmin] = React.useState(null);
+  const [contractor, setContractor] = React.useState(null);
 
-  // Restore session from localStorage
+  // On app load, restore user/admin/contractor from localStorage
   useEffect(() => {
-    const load = (key) => {
-      const stored = localStorage.getItem(key);
-      return stored && stored !== "undefined" ? JSON.parse(stored) : null;
-    };
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser && storedUser !== "undefined") {
+        setUser(JSON.parse(storedUser));
+      }
 
-    setUser(load("user"));
-    setAdmin(load("admin"));
-    setContractor(load("contractor"));
+      const storedAdmin = localStorage.getItem("admin");
+      if (storedAdmin && storedAdmin !== "undefined") {
+        setAdmin(JSON.parse(storedAdmin));
+      }
+
+      const storedContractor = localStorage.getItem("contractor");
+      if (storedContractor && storedContractor !== "undefined") {
+        setContractor(JSON.parse(storedContractor));
+      }
+    } catch (err) {
+      console.error(
+        "Failed to parse localStorage user/admin/contractor:",
+        err
+      );
+      localStorage.removeItem("user");
+      localStorage.removeItem("admin");
+      localStorage.removeItem("contractor");
+    }
   }, []);
 
   return (

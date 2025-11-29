@@ -1,10 +1,11 @@
+// frontend/src/components/company/CompanyLogin.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "./css/CompanyLogin.css";
 import { BASE_URLS } from "../../api";
 
-function CompanyLogin({setContractor}) {
+function CompanyLogin({ setContractor }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userCaptchaInput, setUserCaptchaInput] = useState("");
@@ -112,9 +113,7 @@ function CompanyLogin({setContractor}) {
     const { errors, isValid } = validateForm();
     
     if (!isValid) {
-      // ✅ FIXED: Auto-refresh CAPTCHA on validation failure (esp. incorrect input)
       if (errors.captcha) {
-        // Show error briefly, then refresh
         setTimeout(() => {
           refreshCaptcha();
         }, 1500);
@@ -131,10 +130,19 @@ function CompanyLogin({setContractor}) {
       });
 
       const data = await response.json();
+
       if (response.ok) {
+        // Backend should return contractor object (minimal). If not, fallback to minimal local object.
+        // This ensures downstream components (CompanyProfile) always have contractor.email_id.
+        const contractorObj = data.contractor || { email_id: email };
+
+        // store and set in app state
+        localStorage.setItem("contractor", JSON.stringify(contractorObj));
+        setContractor(contractorObj);
+
         navigate("/contractor/verify_otp", { state: { email } });
-        localStorage.setItem("contractor", JSON.stringify(data.contractor));
-        setContractor(data.contractor);
+
+        // Clear local form
         setEmail("");
         setPassword("");
         setUserCaptchaInput("");

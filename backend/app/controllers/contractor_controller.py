@@ -96,6 +96,7 @@ class ContractorController:
         if not contractor:
             return {"error": "Invalid credentials"}, 401
 
+        # Ensure this user is the contractor/service_type that we expect (service_type 1)
         if contractor.get("service_type") is not None and contractor["service_type"] != 1:
             return {"error": "Invalid credentials"}, 401
 
@@ -105,11 +106,14 @@ class ContractorController:
         if not contractor["active_status"]:
             return {"error": "Account not activated"}, 401
 
+        # generate OTP and save
         otp = ''.join(random.choices(string.digits, k=6))
         ContractorModel.save_otp(email, otp)
         send_contractor_otp_email(email, otp)
 
-        return {"message": "OTP sent to contractor email"}, 200
+        # IMPORTANT: return minimal contractor object so frontend can store email immediately
+        # without waiting for OTP verification endpoint. This keeps flows consistent.
+        return {"message": "OTP sent to contractor email", "contractor": {"email_id": email}}, 200
 
     # ---------------- Verify OTP ----------------
     @staticmethod

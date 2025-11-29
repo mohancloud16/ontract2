@@ -9,7 +9,7 @@ from email.mime.application import MIMEApplication
 from app.config import Config
 
 EMAIL = Config.EMAIL_CONFIG
-FRONTEND_URL = Config.FRONTEND_URL.rstrip("/")  # e.g. http://44.211.36.186
+FRONTEND_URL = Config.FRONTEND_URL.rstrip("/")  # e.g. http://44.222.194.21
 FROM_EMAIL = Config.FROM_EMAIL or EMAIL.get("sender_email")
 
 
@@ -49,7 +49,7 @@ def send_activation_email(email: str, token: str):
     Provider activation email.
     Uses FRONTEND_URL from Config instead of localhost.
     Example final link:
-      http://44.211.36.186/activate?token=...
+      http://44.222.194.21/activate?token=...
     """
     link = f"{FRONTEND_URL}/activate?token={token}"
     subject = "Activate Your Provider Account"
@@ -108,7 +108,7 @@ def send_contractor_activation_email(email: str, token: str):
     Contractor activation email.
     Uses FRONTEND_URL from Config instead of localhost.
     Example final link:
-      http://44.211.36.186/contractor/activate?token=...
+      http://44.222.194.21/contractor/activate?token=...
     """
     link = f"{FRONTEND_URL}/contractor/activate?token={token}"
     subject = "Activate Your Company Account"

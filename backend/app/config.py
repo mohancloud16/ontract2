@@ -10,7 +10,7 @@ class Config:
 
     # ---------------- Frontend Public URL ----------------
     # Required for email activation and CORS
-    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://44.211.36.186")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://44.222.194.21")
 
     # ---------------- Email ----------------
     EMAIL_CONFIG = {
