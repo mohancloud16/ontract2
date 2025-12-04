@@ -141,17 +141,18 @@ class AdminModel:
 
         sql = text("""
             SELECT 
-                user_uid AS provider_id,
-                service_name, 
-                service_rate, 
-                region, 
-                state, 
-                city
-            FROM services_t
-            WHERE user_uid = ANY(:uids) AND service_type = 0
+            p.provider_id,
+            s.service_name,
+            s.service_rate,
+            s.region,
+            s.state,
+            s.city
+        FROM services_t s
+        JOIN providers_t p ON s.user_uid = p.user_uid
+        WHERE p.provider_id = ANY(:ids)
+          AND s.service_type = 0
         """)
-
-        rows = db.session.execute(sql, {"uids": provider_ids}).fetchall()
+        rows = db.session.execute(sql, {"ids": provider_ids}).fetchall()
         return [dict(row._mapping) for row in rows]
 
 
